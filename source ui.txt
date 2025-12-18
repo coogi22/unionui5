@@ -1,0 +1,36 @@
+local Lib = loadstring(game:HttpGet("YOUR_NEW_RAW_URL"))()
+local W = Lib:Window({ text = "Test", config = true })
+local TS = W:TabSection({ text = "Main" })
+local T = TS:Tab({ text = "Stuff", icon = "rbxassetid://7999345313" })
+local S = T:Section({ text = "Demo" })
+
+S:Toggle({
+  text = "My Toggle",
+  state = false,
+  flag = "my_toggle",
+  callback = function(v) print("toggle", v) end
+})
+
+S:Slider({
+  text = "Speed",
+  min = 1,
+  max = 100,
+  float = 1,
+  flag = "speed",
+  callback = function(v) print("speed", v) end
+})
+
+S:Dropdown({
+  text = "Mode",
+  default = "A",
+  list = {"A","B","C"},
+  flag = "mode",
+  callback = function(v) print("mode", v) end
+})
+
+S:Textbox({
+  text = "Note",
+  value = "hi",
+  flag = "note",
+  callback = function(v) print("note", v) end
+})
