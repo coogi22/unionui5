@@ -171,66 +171,74 @@ end
 function Library:AddConfigPanel(SectionElements, opts)
     opts = opts or {}
     local defaultName = opts.defaultName or "default"
-    local currentName = defaultName
+    local currentName = tostring(defaultName)
 
-    -- Config name textbox
-    SectionElements:Textbox({
+    -- keep a handle to the textbox so buttons can read the real value
+    local nameBox = SectionElements:Textbox({
         text = "Config Name",
-        value = tostring(defaultName),
+        value = currentName,
         callback = function(v)
             currentName = tostring(v)
         end
     })
 
-    -- Config list dropdown (refreshable)
-    local ddHandle
-    ddHandle = SectionElements:Dropdown({
+    local ddHandle = SectionElements:Dropdown({
         text = "Configs",
         default = "Select",
         list = Library:GetConfigs(),
         callback = function(selected)
             currentName = tostring(selected)
+            if nameBox and nameBox.Set then
+                nameBox:Set(currentName)
+            end
         end,
         returnHandle = true
     })
 
-    -- Save
+    local function getName()
+        if nameBox and nameBox.Get then
+            local v = tostring(nameBox:Get() or currentName)
+            v = v:gsub("^%s+", ""):gsub("%s+$", "")
+            if v ~= "" then
+                currentName = v
+            end
+        end
+        return currentName
+    end
+
     SectionElements:Button({
         text = "Save Config",
         callback = function()
-            local ok = Library:SaveConfig(currentName)
-            if ok then
-                -- refresh list so it shows immediately
-                if ddHandle and ddHandle.Refresh then
-                    ddHandle:Refresh(Library:GetConfigs(), currentName)
-                end
+            local name = getName()
+            local ok = Library:SaveConfig(name)
+            if ok and ddHandle and ddHandle.Refresh then
+                ddHandle:Refresh(Library:GetConfigs(), name)
             end
         end
     })
 
-    -- Load
     SectionElements:Button({
         text = "Load Config",
         callback = function()
-            Library:LoadConfig(currentName)
+            local name = getName()
+            Library:LoadConfig(name)
         end
     })
 
-    -- Refresh
     SectionElements:Button({
         text = "Refresh List",
         callback = function()
             if ddHandle and ddHandle.Refresh then
-                ddHandle:Refresh(Library:GetConfigs(), currentName)
+                ddHandle:Refresh(Library:GetConfigs(), getName())
             end
         end
     })
 
     return {
-        GetName = function() return currentName end,
+        GetName = getName,
         Refresh = function()
             if ddHandle and ddHandle.Refresh then
-                ddHandle:Refresh(Library:GetConfigs(), currentName)
+                ddHandle:Refresh(Library:GetConfigs(), getName())
             end
         end
     }
@@ -1106,3 +1114,4 @@ function Library:Window(options)
 end
 
 return Library
+
